@@ -1,6 +1,7 @@
 package com.example.tictactoe;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
             {0, 4, 8}, {2, 4, 6}
     };
     boolean gameActive = true;
+    private final Handler handler = new Handler();
 
 
     @Override
@@ -41,34 +43,34 @@ public class MainActivity extends AppCompatActivity {
         if (gameState[tappedImage] == Player.NONE) {
             gameState[tappedImage] = activePlayer;
             img.setTranslationY(-1000f);
-
             if (activePlayer == Player.X) {
                 activePlayer = Player.O;
                 img.setImageResource(R.drawable.x);
+                img.animate().translationYBy(1000f).setDuration(300);
                 updateStatus("Ai thinking!");
 
-                int bestMove = findBestMove();
-                if (bestMove != -1){
-                    gameState[bestMove] = activePlayer;
-                    ImageView bestMoveImg = findViewById(getResources().getIdentifier("c" + bestMove, "id", getPackageName()));
-                    bestMoveImg.setImageResource(R.drawable.o);
-                    bestMoveImg.setTranslationY(-1000f);
-                    bestMoveImg.animate().translationYBy(1000f).setDuration(300);
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        int bestMove = findBestMove();
+                        if (bestMove != -1){
+                            gameState[bestMove] = activePlayer;
+                            ImageView bestMoveImg = findViewById(getResources().getIdentifier("c" + bestMove, "id", getPackageName()));
+                            bestMoveImg.setImageResource(R.drawable.o);
+                            bestMoveImg.setTranslationY(-1000f);
+                            bestMoveImg.animate().translationYBy(1000f).setDuration(300);
 
-                    activePlayer = Player.X;
-                    updateStatus("Tap to play");
-                    checkGameState();
+                            activePlayer = Player.X;
+                            updateStatus("Tap to play");
+                            checkGameState();
 
-                }
-
+                        }
+                    }
+                }, 1000);
 
             }
-
-            img.animate().translationYBy(1000f).setDuration(300);
             checkGameState();
-
         }
-
     }
 
 
@@ -195,16 +197,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     private int findBestMove(){
-        int bestVal = Integer.MIN_VALUE;
+        int bestVal = Integer.MAX_VALUE;
         int bestMove = -1;
 
         for (int i = 0; i < gameState.length; i++) {
             if(gameState[i] == Player.NONE){
-                gameState[i] = Player.X;
-                int moveVal = minmax(gameState, false, 0,Integer.MIN_VALUE, Integer.MAX_VALUE);
+                gameState[i] = Player.O;
+                int moveVal = minmax(gameState, true, 0,Integer.MIN_VALUE, Integer.MAX_VALUE);
                 gameState[i] = Player.NONE;
 
-                if (moveVal > bestVal){
+                if (moveVal < bestVal){
                     bestMove = i;
                     bestVal = moveVal;
                 }
